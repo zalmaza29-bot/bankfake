@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="pl" class="h-full bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NOVA - Mobile Fintech App</title>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Tailwind Configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Styles for Mobile View & Utilities -->
+  <style>
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .pb-safe { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+    
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .animate-pulse-subtle { animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+  </style>
+</head>
+<body class="h-full w-full bg-slate-950 text-slate-50 font-sans antialiased overflow-hidden select-none">
+
+  <!-- ==================== LOCK SCREEN ==================== -->
+  <div id="lock-screen" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-between p-6 py-12">
+    <div class="flex flex-col items-center gap-3 mt-4">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center shadow-xl shadow-indigo-500/20 text-white font-black text-2xl tracking-wider mb-2">
+        NOVA
+      </div>
+      <h2 class="text-xl font-bold text-white">Witaj z powrotem</h2>
+      <p class="text-slate-400 text-xs">Wprowadź PIN (domyślnie: <span class="font-mono text-indigo-400 font-bold">1234</span>)</p>
+
+      <!-- PIN Indicators -->
+      <div id="pin-dots" class="flex gap-4 mt-6">
+        <div class="w-4 h-4 rounded-full bg-slate-800 border border-slate-700 transition-all duration-200"></div>
+        <div class="w-4 h-4 rounded-full bg-slate-800 border border-slate-700 transition-all duration-200"></div>
+        <div class="w-4 h-4 rounded-full bg-slate-800 border border-slate-700 transition-all duration-200"></div>
+        <div class="w-4 h-4 rounded-full bg-slate-800 border border-slate-700 transition-all duration-200"></div>
+      </div>
+    </div>
+
+    <!-- Keypad -->
+    <div class="w-full max-w-xs space-y-4 mb-4">
+      <div class="grid grid-cols-3 gap-4">
+        <button onclick="handlePinKey('1')" class="h-16 rounded-full bg-slate-900 border border-slate-800 text-xl font-semibold hover:bg-slate-800 active:scale-95 transition flex items-center justify-center text-white">1</button>
+        <button onclick="handlePinKey('2')" class="h-16 rounded-full bg-slate-900 border border-slate-800 text-xl font-semibold hover:bg-slate-800 active:scale-95 transition flex items-center justify-center text-white">2</button>
+        <button onclick="handlePinKey('3')" class="h-16 rounded-full bg-slate-900 border border-slate-800 text-xl font-semibold hover:bg-slate-800 active:scale-95 transition flex items-center justify-center text-white">3</button>
+        <button onclick="handlePinKey('4')" class="h-16 rounded-full bg-slate-900 border border-slate-800 text-xl font-semibold hover:bg-slate-800 active:scale-95 transition flex items-center justify-center text-white">4</button>
+        <button onclick="handlePinKey('5')" class="h-16 rounded-full bg-slate-900 border border-slate-800 text-xl font-semibold hover:bg-slate-800 active:scale-95 transition flex items-center justify-center text-white">5</button>
+        <button onclick="handlePinKey('6')" class="h-16 rounded-full bg-slate-900 border border-slate-800 text-xl font-semibold hover:bg-slate-800 active:scale-95 transition flex items-center justify-center text-white">6</button>
+        <button onclick="handlePinKey('7')" class="h-16 rounded-full bg-slate-900 border border-slate-800 text-xl font-semibold hover:bg-slate-800 active:scale-95 transition flex items-center justify-center text-white">7</button>
+        <button onclick="handlePinKey('8')" class="h-16 rounded-full bg-slate-900 border border-slate-800 text-xl font-semibold hover:bg-slate-800 active:scale-95 transition flex items-center justify-center text-white">8</button>
+        <button onclick="handlePinKey('9')" class="h-16 rounded-full bg-slate-900 border border-slate-800 text-xl font-semibold hover:bg-slate-800 active:scale-95 transition flex items-center justify-center text-white">9</button>
+        <button onclick="unlockAppWithBiometrics()" class="h-16 rounded-full bg-slate-900/50 border border-slate-800/80 text-indigo-400 hover:bg-slate-800 active:scale-95 transition flex items-center justify-center" title="Biometria">
+          <i data-lucide="fingerprint" class="w-6 h-6"></i>
+        </button>
+        <button onclick="handlePinKey('0')" class="h-16 rounded-full bg-slate-900 border border-slate-800 text-xl font-semibold hover:bg-slate-800 active:scale-95 transition flex items-center justify-center text-white">0</button>
+        <button onclick="handlePinBackspace()" class="h-16 rounded-full bg-slate-900/50 border border-slate-800/80 text-slate-400 hover:bg-slate-800 active:scale-95 transition flex items-center justify-center">
+          ←
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN APP SHELL ==================== -->
+  <div id="app-container" class="hidden h-full w-full bg-slate-900 relative overflow-hidden flex flex-col">
+    
+    <!-- HEADER -->
+    <header class="px-6 pt-8 pb-4 flex justify-between items-center bg-slate-900/90 backdrop-blur-md z-20 sticky top-0 border-b border-slate-800/60">
+      <div class="flex items-center gap-3">
+        <div id="user-avatar" class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-sm font-bold shadow-lg shadow-indigo-500/20 text-white">
+          AK
+        </div>
+        <div>
+          <p class="text-xs text-slate-400">Dzień dobry,</p>
+          <h1 id="user-firstname" class="text-sm font-semibold text-white">Aleksander</h1>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="toggleFullscreen()" title="Tryb Pełnoekranowy" class="p-2 rounded-full bg-slate-800/80 text-slate-300 hover:bg-slate-700 transition">
+          <i id="fs-icon" data-lucide="maximize" class="w-4 h-4"></i>
+        </button>
+        <button onclick="openNotificationsModal()" class="relative p-2 rounded-full bg-slate-800/80 text-slate-300 hover:bg-slate-700 transition">
+          <i data-lucide="bell" class="w-4 h-4"></i>
+          <span id="notif-badge" class="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-slate-900"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <main id="main-content" class="flex-1 overflow-y-auto pb-24 hide-scrollbar relative">
+      
+      <!-- TAB 1: HOME -->
+      <section id="tab-home" class="p-6 space-y-6">
+        
+        <!-- PWA Banner -->
+        <div id="pwa-banner" class="bg-gradient-to-r from-indigo-900/90 to-purple-900/90 border border-indigo-500/30 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-lg relative">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+              <i data-lucide="download" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-white">Zainstaluj aplikację NOVA</p>
+              <p class="text-[11px] text-slate-300">Szybki dostęp z ekranu głównego</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openInstallModal()" class="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-semibold rounded-lg transition shadow-md shadow-indigo-500/30 whitespace-nowrap">Instaluj</button>
+            <button onclick="closePwaBanner()" class="p-1 text-slate-400 hover:text-white transition"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+
+        <!-- Balance Card (Secret 5 Clicks Trigger) -->
+        <div onclick="handleBalanceClick()" class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 p-6 shadow-xl shadow-indigo-900/20 cursor-pointer select-none active:scale-[0.99] transition">
+          <div class="absolute top-0 right-0 p-4 opacity-15 pointer-events-none">
+            <i data-lucide="zap" class="w-32 h-32 transform rotate-12 translate-x-6 -translate-y-6"></i>
+          </div>
+          <div class="relative z-10">
+            <div class="flex items-center justify-between mb-1">
+              <p class="text-indigo-200 text-xs font-medium uppercase tracking-wider">Dostępne środki</p>
+              <span id="click-counter-badge" class="hidden text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-mono animate-pulse">Kliknięcia: <span id="click-count">0</span>/5</span>
+            </div>
+            <h2 id="main-balance-text" class="text-3xl font-extrabold tracking-tight text-white mb-6">12 450,50 zł</h2>
+            
+            <div class="flex justify-between items-end">
+              <span class="px-2.5 py-1 bg-white/10 rounded-lg text-xs backdrop-blur-sm border border-white/10 text-indigo-100 flex items-center gap-1">
+                <i data-lucide="arrow-up-right" class="w-3 h-3 text-emerald-400"></i> +3.2% w tym miesiącu
+              </span>
+              <div class="text-right">
+                <p class="text-[11px] text-indigo-200 opacity-80">Konto Główne</p>
+                <p id="main-iban-short" class="text-xs font-mono text-indigo-100">••• 2222</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-4 gap-3">
+          <button onclick="switchTab('payments')" class="flex flex-col items-center justify-center p-3 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/50 rounded-2xl transition active:scale-95">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-1.5"><i data-lucide="send" class="w-5 h-5"></i></div>
+            <span class="text-xs text-slate-200 font-medium">Wyślij</span>
+          </button>
+          <button onclick="openCheatModal()" class="flex flex-col items-center justify-center p-3 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/50 rounded-2xl transition active:scale-95">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-1.5"><i data-lucide="plus" class="w-5 h-5"></i></div>
+            <span class="text-xs text-slate-200 font-medium">Doładuj</span>
+          </button>
+          <button onclick="switchTab('payments', 'exchange')" class="flex flex-col items-center justify-center p-3 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/50 rounded-2xl transition active:scale-95">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-1.5"><i data-lucide="refresh-cw" class="w-5 h-5"></i></div>
+            <span class="text-xs text-slate-200 font-medium">Wymień</span>
+          </button>
+          <button onclick="switchTab('analytics')" class="flex flex-col items-center justify-center p-3 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/50 rounded-2xl transition active:scale-95">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-1.5"><i data-lucide="activity" class="w-5 h-5"></i></div>
+            <span class="text-xs text-slate-200 font-medium">Budżet</span>
+          </button>
+        </div>
+
+        <!-- Sub Accounts Slider -->
+        <div>
+          <h3 class="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider">Waluty & Subkonta</h3>
+          <div id="sub-accounts-container" class="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Ostatnie transakcje</h3>
+            <button onclick="switchTab('analytics')" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium transition">Wszystkie</button>
+          </div>
+          <div id="recent-transactions-list" class="space-y-2.5">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: PAYMENTS & EXCHANGE -->
+      <section id="tab-payments" class="hidden p-6 space-y-6">
+        <div class="flex bg-slate-800/80 p-1 rounded-2xl border border-slate-700/50">
+          <button id="mode-btn-transfer" onclick="setPaymentMode('transfer')" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-md">Przelew</button>
+          <button id="mode-btn-exchange" onclick="setPaymentMode('exchange')" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white">Wymiana Walut</button>
+        </div>
+
+        <div id="payment-toast" class="hidden bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 p-4 rounded-2xl text-center font-medium text-sm">
+          ✓ Operacja zakończona pomyślnie!
+        </div>
+
+        <!-- Transfer Form -->
+        <form id="form-transfer" onsubmit="handleTransferSubmit(event)" class="space-y-4">
+          <div>
+            <label class="text-xs text-slate-400 font-medium mb-1 block">Z konta</label>
+            <select id="transfer-from-account" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500"></select>
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 font-medium mb-1 block">Zapisani odbiorcy</label>
+            <div id="beneficiaries-list" class="flex gap-2 overflow-x-auto pb-1 hide-scrollbar"></div>
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 font-medium mb-1 block">Nazwa odbiorcy</label>
+            <input id="transfer-recipient" type="text" required placeholder="np. Jan Kowalski" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 font-medium mb-1 block">Numer rachunku / IBAN</label>
+            <input id="transfer-iban" type="text" required placeholder="PL 00 0000 0000 0000 0000 0000 0000" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500 font-mono">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 font-medium mb-1 block">Kwota</label>
+            <input id="transfer-amount" type="number" step="0.01" required placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500 text-lg font-semibold">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 font-medium mb-1 block">Tytuł przelewu</label>
+            <input id="transfer-title" type="text" placeholder="np. Rozliczenie za obiad" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition mt-2">Wykonaj przelew</button>
+        </form>
+
+        <!-- Exchange Form -->
+        <form id="form-exchange" onsubmit="handleExchangeSubmit(event)" class="hidden space-y-4">
+          <div>
+            <label class="text-xs text-slate-400 font-medium mb-1 block">Sprzedajesz</label>
+            <select id="exchange-from-account" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500"></select>
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 font-medium mb-1 block">Kupujesz</label>
+            <select id="exchange-to-account" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500"></select>
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 font-medium mb-1 block">Kwota do wymiany</label>
+            <input id="exchange-amount" type="number" step="0.01" required placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500 text-lg font-semibold">
+          </div>
+          <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition mt-2">Wymień walutę</button>
+        </form>
+      </section>
+
+      <!-- TAB 3: CARDS -->
+      <section id="tab-cards" class="hidden p-6 space-y-6">
+        <div class="flex justify-between items-center">
+          <h2 class="text-lg font-bold text-white">Moje Karty</h2>
+          <button onclick="openAddCardModal()" class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition shadow-md shadow-indigo-600/30">
+            <i data-lucide="plus" class="w-4 h-4"></i> Dodaj kartę
+          </button>
+        </div>
+        <div id="cards-container" class="space-y-6">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- TAB 4: ANALYTICS / BUDGET -->
+      <section id="tab-analytics" class="hidden p-6 space-y-6">
+        <h2 class="text-lg font-bold text-white">Budżet & Analityka</h2>
+        
+        <div class="bg-slate-800/50 rounded-3xl border border-slate-800 p-6 space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-xs text-slate-400">Miesięczny limit</p>
+              <p id="budget-limit-text" class="text-2xl font-bold text-white">5 000,00 zł</p>
+            </div>
+            <div class="text-right">
+              <p class="text-xs text-slate-400">Wydano</p>
+              <p id="budget-spent-text" class="text-lg font-semibold text-rose-400">3 200,00 zł</p>
+            </div>
+          </div>
+          <div id="overall-budget-bar" class="w-full bg-slate-700/50 h-3 rounded-full overflow-hidden flex">
+            <!-- Dynamically calculated -->
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider">Kategorie wydatków</h3>
+          <div id="budget-categories-list" class="space-y-3">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: PROFILE -->
+      <section id="tab-profile" class="hidden p-6 space-y-6">
+        <div class="flex flex-col items-center pt-2 pb-4 border-b border-slate-800">
+          <div id="profile-avatar" class="w-20 h-20 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-2xl font-bold shadow-xl shadow-indigo-500/20 mb-3 text-white">
+            AK
+          </div>
+          <h2 id="profile-fullname" class="text-xl font-bold text-white">Aleksander Kowalski</h2>
+          <p id="profile-email" class="text-xs text-slate-400">aleksander@example.com</p>
+        </div>
+
+        <div class="bg-slate-800/50 rounded-2xl border border-slate-800 p-4 space-y-2">
+          <p class="text-xs text-slate-400">Numer konta (IBAN)</p>
+          <div class="flex items-center justify-between">
+            <p id="profile-iban" class="text-sm font-mono font-semibold text-white">PL 12 3456 7890 0000 0000 1111 2222</p>
+            <button onclick="copyIbanToClipboard()" class="p-2 text-indigo-400 hover:text-indigo-300 transition">
+              <i id="copy-icon" data-lucide="copy" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- NEW: Prominent Ustawienia Section with Fullscreen Button -->
+        <div class="space-y-4">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Ustawienia Ekranu</h3>
+          <button onclick="toggleFullscreen()" class="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-2xl border border-slate-700/50 flex justify-center items-center gap-3 transition active:scale-[0.98]">
+            <i id="profile-fs-icon-btn" data-lucide="maximize" class="w-5 h-5 text-indigo-400"></i>
+            <span id="profile-fs-text-btn">Włącz pełny ekran</span>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Aplikacja & Bezpieczeństwo</h3>
+          <div class="bg-slate-800/50 rounded-2xl border border-slate-800 overflow-hidden">
+            <div onclick="openInstallModal()" class="p-4 flex items-center justify-between border-b border-slate-800 hover:bg-slate-800/80 transition cursor-pointer">
+              <div class="flex items-center gap-3 text-slate-200">
+                <i data-lucide="download" class="w-5 h-5 text-slate-400"></i>
+                <span class="text-sm font-medium">Zainstaluj aplikację NOVA</span>
+              </div>
+              <span class="text-xs text-indigo-400 font-medium">Zainstaluj</span>
+            </div>
+            <div class="p-4 flex items-center justify-between border-b border-slate-800">
+              <div class="flex items-center gap-3 text-slate-200">
+                <i data-lucide="fingerprint" class="w-5 h-5 text-slate-400"></i>
+                <span class="text-sm font-medium">Logowanie biometryczne</span>
+              </div>
+              <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-semibold">Aktywne</span>
+            </div>
+            <div class="p-4 flex items-center justify-between">
+              <div class="flex items-center gap-3 text-slate-200">
+                <i data-lucide="lock" class="w-5 h-5 text-slate-400"></i>
+                <span class="text-sm font-medium">Zmień PIN do aplikacji</span>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="lockApp()" class="w-full py-3 text-sm text-rose-400 font-semibold hover:bg-rose-500/10 rounded-2xl transition">
+          Wyloguj się
+        </button>
+      </section>
+
+    </main>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="absolute bottom-0 w-full bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 pb-safe z-30">
+      <div class="flex justify-between items-center px-4 py-3">
+        <button id="nav-home" onclick="switchTab('home')" class="flex flex-col items-center gap-1 transition text-indigo-400">
+          <i data-lucide="home" class="w-5 h-5"></i>
+          <span class="text-[10px] font-medium">Home</span>
+        </button>
+        <button id="nav-payments" onclick="switchTab('payments')" class="flex flex-col items-center gap-1 transition text-slate-400 hover:text-slate-200">
+          <i data-lucide="send" class="w-5 h-5"></i>
+          <span class="text-[10px] font-medium">Przelewy</span>
+        </button>
+        <button id="nav-cards" onclick="switchTab('cards')" class="flex flex-col items-center gap-1 transition text-slate-400 hover:text-slate-200">
+          <i data-lucide="credit-card" class="w-5 h-5"></i>
+          <span class="text-[10px] font-medium">Karty</span>
+        </button>
+        <button id="nav-analytics" onclick="switchTab('analytics')" class="flex flex-col items-center gap-1 transition text-slate-400 hover:text-slate-200">
+          <i data-lucide="pie-chart" class="w-5 h-5"></i>
+          <span class="text-[10px] font-medium">Budżet</span>
+        </button>
+        <button id="nav-profile" onclick="switchTab('profile')" class="flex flex-col items-center gap-1 transition text-slate-400 hover:text-slate-200">
+          <i data-lucide="user" class="w-5 h-5"></i>
+          <span class="text-[10px] font-medium">Profil</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ==================== MODALS ==================== -->
+    <!-- 1. Secret Money Cheat Modal -->
+    <div id="modal-cheat" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-6">
+      <div class="bg-slate-900 border border-slate-700 p-6 rounded-3xl w-full max-w-sm shadow-2xl">
+        <h3 class="text-lg font-bold text-white mb-1 flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-5 h-5 text-emerald-400"></i> Szybkie Doładowanie
+        </h3>
+        <p class="text-slate-400 text-xs mb-4">Wprowadź kwotę, którą chcesz natychmiast dodać do konta głównego.</p>
+        <input id="cheat-amount-input" type="number" placeholder="Kwota w PLN np. 2500" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3.5 text-white focus:border-indigo-500 focus:outline-none mb-4 text-base">
+        <div class="flex gap-2">
+          <button onclick="closeCheatModal()" class="flex-1 py-3 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-xl text-sm font-medium transition">Anuluj</button>
+          <button onclick="submitCheatTopUp()" class="flex-1 py-3 bg-indigo-600 text-white hover:bg-indigo-500 rounded-xl text-sm font-bold transition shadow-lg shadow-indigo-600/30">Dodaj środki</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Add Card Modal -->
+    <div id="modal-add-card" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-6">
+      <div class="bg-slate-900 border border-slate-700 p-6 rounded-3xl w-full max-w-sm shadow-2xl">
+        <h3 class="text-lg font-bold text-white mb-4">Nowa Karta NOVA</h3>
+        <form onsubmit="handleAddCardSubmit(event)" class="space-y-4">
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">Typ karty</label>
+            <div class="flex bg-slate-800 p-1 rounded-xl">
+              <button type="button" id="card-type-virtual" onclick="setCardTypeSelection('virtual')" class="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white">Wirtualna</button>
+              <button type="button" id="card-type-physical" onclick="setCardTypeSelection('physical')" class="flex-1 py-1.5 rounded-lg text-xs font-semibold text-slate-400">Fizyczna</button>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">Nazwa karty</label>
+            <input id="card-name-input" type="text" required placeholder="np. Karta do Zakupów" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 block mb-2">Wybierz styl karty</label>
+            <div id="card-style-gallery" class="grid grid-cols-5 gap-2">
+              <!-- Dynamically populated style buttons -->
+            </div>
+          </div>
+          <div class="flex gap-2 pt-2">
+            <button type="button" onclick="closeAddCardModal()" class="flex-1 py-3 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-xl text-sm font-medium transition">Anuluj</button>
+            <button type="submit" class="flex-1 py-3 bg-indigo-600 text-white hover:bg-indigo-500 rounded-xl text-sm font-bold transition shadow-lg shadow-indigo-600/30">Utwórz</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 3. Notifications Modal -->
+    <div id="modal-notif" class="hidden fixed inset-0 z-50 flex flex-col bg-slate-900/95 backdrop-blur-md">
+      <div class="flex justify-between items-center p-6 border-b border-slate-800">
+        <h2 class="text-lg font-bold text-white">Powiadomienia</h2>
+        <button onclick="closeNotificationsModal()" class="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white transition"><i data-lucide="x-circle" class="w-5 h-5"></i></button>
+      </div>
+      <div id="notif-list" class="flex-1 overflow-y-auto p-6 space-y-3">
+        <!-- Dynamically populated -->
+      </div>
+      <div class="p-6 border-t border-slate-800">
+        <button onclick="clearNotifications()" class="w-full py-3 text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 rounded-xl transition">Wyczyść powiadomienia</button>
+      </div>
+    </div>
+
+    <!-- 4. Install App Modal -->
+    <div id="modal-install" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-6">
+      <div class="bg-slate-900 border border-slate-700 p-6 rounded-3xl w-full max-w-sm shadow-2xl relative">
+        <button onclick="closeInstallModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1"><i data-lucide="x-circle" class="w-5 h-5"></i></button>
+        <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4 shadow-lg shadow-indigo-500/20">
+          <i data-lucide="download" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2">Zainstaluj NOVA</h3>
+        <p class="text-slate-400 text-xs mb-4">Dodaj aplikację NOVA do swojego ekranu głównego dla natychmiastowego dostępu.</p>
+        <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-3.5 space-y-2 mb-4 text-[11px] text-slate-300">
+          <p><strong class="text-white">Safari (iOS):</strong> Stuknij ikone udostępnij, a następnie <strong>"Dodaj do ekranu początkowego"</strong>.</p>
+          <p><strong class="text-white">Chrome (Android):</strong> Otwórz menu <strong>⋮</strong> i wybierz <strong>"Zainstaluj aplikację"</strong>.</p>
+        </div>
+        <button onclick="closeInstallModal()" class="w-full py-2.5 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-xl font-medium text-xs transition">Zamknij</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+  <script>
+    
+    // --- APP CONSTANTS & DEFAULT MOCK DATA ---
+    const MOCK_USER = {
+      name: 'Aleksander Kowalski',
+      email: 'aleksander@example.com',
+      avatar: 'AK',
+      pin: '1234'
+    };
+
+    const DEFAULT_ACCOUNTS = [
+      { id: 'acc_pln', currency: 'PLN', balance: 12450.50, type: 'main', iban: 'PL 12 3456 7890 0000 0000 1111 2222' },
+      { id: 'acc_eur', currency: 'EUR', balance: 340.00, type: 'currency', iban: 'PL 12 3456 7890 0000 0000 1111 3333' },
+      { id: 'acc_usd', currency: 'USD', balance: 150.00, type: 'currency', iban: 'PL 12 3456 7890 0000 0000 1111 4444' }
+    ];
+
+    const DEFAULT_TRANSACTIONS = [
+      { id: 'tx_1', date: new Date().toISOString(), amount: -45.99, currency: 'PLN', recipient: 'Biedronka', category: 'Groceries' },
+      { id: 'tx_2', date: new Date(Date.now() - 86400000).toISOString(), amount: -120.00, currency: 'PLN', recipient: 'Uber', category: 'Transport' },
+      { id: 'tx_3', date: new Date(Date.now() - 172800000).toISOString(), amount: 3500.00, currency: 'PLN', recipient: 'Nova Solutions Sp. z o.o.', category: 'Income' },
+      { id: 'tx_4', date: new Date(Date.now() - 259200000).toISOString(), amount: -50.00, currency: 'EUR', recipient: 'Amazon EU', category: 'Shopping' }
+    ];
+
+    const CARD_STYLES = [
+      { id: 'ocean', label: 'Ocean Blue', gradient: 'from-cyan-500 to-blue-600' },
+      { id: 'metal', label: 'NOVA Metal', gradient: 'from-zinc-800 to-black' },
+      { id: 'sunset', label: 'Sunset Purple', gradient: 'from-purple-500 to-pink-500' },
+      { id: 'forest', label: 'Emerald Forest', gradient: 'from-emerald-400 to-teal-600' },
+      { id: 'gold', label: 'Royal Gold', gradient: 'from-amber-400 to-orange-500' }
+    ];
+
+    const DEFAULT_CARDS = [
+      { id: 'crd_1', type: 'virtual', name: 'Karta Wirtualna', last4: '4589', expiry: '12/26', cvv: '123', status: 'active', network: 'mastercard', style: CARD_STYLES[0].gradient },
+      { id: 'crd_2', type: 'physical', name: 'NOVA Metal', last4: '8821', expiry: '09/27', cvv: '987', status: 'active', network: 'visa', style: CARD_STYLES[1].gradient }
+    ];
+
+    const BENEFICIARIES = [
+      { id: 'ben_1', name: 'Jan Nowak', account: '45 1020 3040 5060 7080 9000 1111' },
+      { id: 'ben_2', name: 'Kasia Kowalska', account: '88 1140 2004 0000 3002 0123 4567' }
+    ];
+
+    const EXCHANGE_RATES = {
+      'PLN_EUR': 0.23, 'EUR_PLN': 4.35,
+      'PLN_USD': 0.25, 'USD_PLN': 4.01,
+      'EUR_USD': 1.08, 'USD_EUR': 0.92
+    };
+
+    const BUDGET = {
+      monthlyLimit: 5000,
+      categories: [
+        { name: 'Groceries', limit: 1500, spent: 1200, color: 'bg-emerald-500' },
+        { name: 'Transport', limit: 800, spent: 450, color: 'bg-blue-500' },
+        { name: 'Entertainment', limit: 1000, spent: 950, color: 'bg-purple-500' },
+        { name: 'Shopping', limit: 1700, spent: 600, color: 'bg-pink-500' }
+      ]
+    };
+
+    // --- APPLICATION STATE ---
+    let pinInput = '';
+    let accounts = JSON.parse(localStorage.getItem('nova_accounts')) || DEFAULT_ACCOUNTS;
+    let transactions = JSON.parse(localStorage.getItem('nova_txs')) || DEFAULT_TRANSACTIONS;
+    let cards = JSON.parse(localStorage.getItem('nova_cards')) || DEFAULT_CARDS;
+    let notifications = [
+      { id: 1, text: 'Witaj w NOVA! Twoje konto jest gotowe do użycia.' }
+    ];
+    let balanceClickCount = 0;
+    let balanceClickTimer = null;
+    let selectedAddCardStyle = CARD_STYLES[0].gradient;
+    let selectedAddCardType = 'virtual';
+    let revealedCardIds = new Set();
+
+    
+    // --- FORMATTING HELPERS ---
+    function formatCurrency(amount, currency = 'PLN') {
+      return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: currency }).format(amount);
+    }
+
+    function formatDate(dateString) {
+      const options = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
+      return new Date(dateString).toLocaleDateString('pl-PL', options);
+    }
+
+    function saveData() {
+      localStorage.setItem('nova_accounts', JSON.stringify(accounts));
+      localStorage.setItem('nova_txs', JSON.stringify(transactions));
+      localStorage.setItem('nova_cards', JSON.stringify(cards));
+    }
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      renderAllViews();
+    });
+
+    
+    // --- AUTH & LOCK SCREEN ---
+    function handlePinKey(digit) {
+      if (pinInput.length < 4) {
+        pinInput += digit;
+        updatePinDots();
+        if (pinInput.length === 4) {
+          if (pinInput === MOCK_USER.pin || pinInput === '0000') {
+            // Trigger fullscreen synchronously during user's keystroke event 
+            // to bypass browser security restrictions on automatic fullscreen.
+            tryForceFullscreen();
+            
+            // Delay visual unlock for aesthetics
+            setTimeout(unlockApp, 150);
+          } else {
+            shakePinDots();
+          }
+        }
+      }
+    }
+
+    function handlePinBackspace() {
+      pinInput = pinInput.slice(0, -1);
+      updatePinDots();
+    }
+
+    function updatePinDots() {
+      const dots = document.querySelectorAll('#pin-dots > div');
+      dots.forEach((dot, idx) => {
+        if (idx < pinInput.length) {
+          dot.className = 'w-4 h-4 rounded-full bg-indigo-500 scale-110 shadow-lg shadow-indigo-500/50 transition-all duration-200';
+        } else {
+          dot.className = 'w-4 h-4 rounded-full bg-slate-800 border border-slate-700 transition-all duration-200';
+        }
+      });
+    }
+
+    function shakePinDots() {
+      const dots = document.querySelectorAll('#pin-dots > div');
+      dots.forEach(dot => dot.className = 'w-4 h-4 rounded-full bg-rose-500 scale-110 transition-all duration-200');
+      setTimeout(() => {
+        pinInput = '';
+        updatePinDots();
+      }, 600);
+    }
+
+    function unlockAppWithBiometrics() {
+      tryForceFullscreen();
+      unlockApp();
+    }
+
+    function unlockApp() {
+      document.getElementById('lock-screen').classList.add('hidden');
+      document.getElementById('app-container').classList.remove('hidden');
+    }
+
+    function lockApp() {
+      pinInput = '';
+      updatePinDots();
+      document.getElementById('app-container').classList.add('hidden');
+      document.getElementById('lock-screen').classList.remove('hidden');
+    }
+
+    // --- FULLSCREEN MANAGEMENT ---
+    function tryForceFullscreen() {
+      const doc = document.documentElement;
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (doc.requestFullscreen) {
+          doc.requestFullscreen().catch(() => {});
+        } else if (doc.webkitRequestFullscreen) {
+          doc.webkitRequestFullscreen();
+        }
+      }
+    }
+
+    function toggleFullscreen() {
+      const doc = document.documentElement;
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (doc.requestFullscreen) {
+          doc.requestFullscreen().then(() => updateFsUi(true)).catch(err => console.warn(err));
+        } else if (doc.webkitRequestFullscreen) {
+          doc.webkitRequestFullscreen();
+          updateFsUi(true);
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().then(() => updateFsUi(false)).catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+          updateFsUi(false);
+        }
+      }
+    }
+
+    // Listener for hardware escape keys modifying the FS state outside our toggle
+    document.addEventListener('fullscreenchange', () => {
+      updateFsUi(!!document.fullscreenElement);
+    });
+    document.addEventListener('webkitfullscreenchange', () => {
+      updateFsUi(!!document.webkitFullscreenElement);
+    });
+
+    function updateFsUi(isFs) {
+      // Header Icon
+      const icon = document.getElementById('fs-icon');
+      // Profile Tab Big Button Elements
+      const profileFsIconBtn = document.getElementById('profile-fs-icon-btn');
+      const profileFsTextBtn = document.getElementById('profile-fs-text-btn');
+
+      if (isFs) {
+        if(icon) icon.setAttribute('data-lucide', 'minimize');
+        if(profileFsIconBtn) profileFsIconBtn.setAttribute('data-lucide', 'minimize');
+        if(profileFsTextBtn) profileFsTextBtn.textContent = 'Opuść pełny ekran';
+      } else {
+        if(icon) icon.setAttribute('data-lucide', 'maximize');
+        if(profileFsIconBtn) profileFsIconBtn.setAttribute('data-lucide', 'maximize');
+        if(profileFsTextBtn) profileFsTextBtn.textContent = 'Włącz pełny ekran';
+      }
+      lucide.createIcons();
+    }
+
+    // --- NAVIGATION & VIEWS ---
+    function switchTab(tabName, subMode = 'transfer') {
+      const tabs = ['home', 'payments', 'cards', 'analytics', 'profile'];
+      tabs.forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        const navBtn = document.getElementById(`nav-${t}`);
+        if (navBtn) navBtn.className = 'flex flex-col items-center gap-1 transition text-slate-400 hover:text-slate-200';
+      });
+
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+      const activeNav = document.getElementById(`nav-${tabName}`);
+      if (activeNav) activeNav.className = 'flex flex-col items-center gap-1 transition text-indigo-400';
+
+      if (tabName === 'payments') {
+        setPaymentMode(subMode);
+      }
+    }
+
+    // --- SECRET MONEY CHEAT (5 CLICKS) ---
+    function handleBalanceClick() {
+      balanceClickCount++;
+      const badge = document.getElementById('click-counter-badge');
+      const countText = document.getElementById('click-count');
+      
+      badge.classList.remove('hidden');
+      countText.textContent = balanceClickCount;
+
+      clearTimeout(balanceClickTimer);
+      if (balanceClickCount >= 5) {
+        openCheatModal();
+        balanceClickCount = 0;
+        badge.classList.add('hidden');
+      } else {
+        balanceClickTimer = setTimeout(() => {
+          balanceClickCount = 0;
+          badge.classList.add('hidden');
+        }, 1600);
+      }
+    }
+
+    function openCheatModal() {
+      document.getElementById('modal-cheat').classList.remove('hidden');
+      document.getElementById('cheat-amount-input').focus();
+    }
+
+    function closeCheatModal() {
+      document.getElementById('modal-cheat').classList.add('hidden');
+      document.getElementById('cheat-amount-input').value = '';
+    }
+
+    function submitCheatTopUp() {
+      const input = document.getElementById('cheat-amount-input');
+      const val = parseFloat(input.value);
+      if (val > 0) {
+        accounts[0].balance += val;
+        transactions.unshift({
+          id: `tx_topup_${Date.now()}`,
+          date: new Date().toISOString(),
+          amount: val,
+          currency: accounts[0].currency,
+          recipient: 'Zasilenie konta (NOVA Top-Up)',
+          category: 'Income'
+        });
+        saveData();
+        renderAllViews();
+        closeCheatModal();
+      }
+    }
+
+    
+    // --- RENDER FUNCTIONS ---
+    function renderAllViews() {
+      renderHomeView();
+      renderPaymentsView();
+      renderCardsView();
+      renderAnalyticsView();
+      renderProfileView();
+      renderNotifications();
+      
+      // Sync FS state on render if needed
+      updateFsUi(!!(document.fullscreenElement || document.webkitFullscreenElement));
+    }
+
+    function renderHomeView() {
+      const mainAcc = accounts.find(a => a.type === 'main') || accounts[0];
+      document.getElementById('main-balance-text').textContent = formatCurrency(mainAcc.balance, mainAcc.currency);
+      document.getElementById('main-iban-short').textContent = `••• ${mainAcc.iban.slice(-4)}`;
+
+      // Sub accounts horizontal list
+      const subContainer = document.getElementById('sub-accounts-container');
+      subContainer.innerHTML = accounts.map(acc => `
+        <div class="min-w-[140px] bg-slate-800/60 border border-slate-800 p-3.5 rounded-2xl flex flex-col justify-between">
+          <span class="text-xs font-bold text-slate-400">${acc.currency}</span>
+          <span class="text-base font-bold text-white mt-2">${formatCurrency(acc.balance, acc.currency)}</span>
+        </div>
+      `).join('');
+
+      // Recent transactions
+      const txContainer = document.getElementById('recent-transactions-list');
+      txContainer.innerHTML = transactions.slice(0, 5).map(tx => {
+        const isIncome = tx.amount > 0;
+        return `
+          <div class="flex items-center justify-between p-3.5 bg-slate-800/40 border border-slate-800/80 rounded-2xl hover:bg-slate-800/60 transition">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center ${isIncome ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-700/30 text-slate-300 border border-slate-700/40'}">
+                <i data-lucide="${isIncome ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-white">${tx.recipient}</p>
+                <p class="text-[10px] text-slate-400">${formatDate(tx.date)}</p>
+              </div>
+            </div>
+            <p class="text-xs font-bold ${isIncome ? 'text-emerald-400' : 'text-slate-200'}">
+              ${isIncome ? '+' : ''}${formatCurrency(tx.amount, tx.currency)}
+            </p>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    
+    function setPaymentMode(mode) {
+      const btnTransfer = document.getElementById('mode-btn-transfer');
+      const btnExchange = document.getElementById('mode-btn-exchange');
+      const formTransfer = document.getElementById('form-transfer');
+      const formExchange = document.getElementById('form-exchange');
+
+      if (mode === 'transfer') {
+        btnTransfer.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-md';
+        btnExchange.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white';
+        formTransfer.classList.remove('hidden');
+        formExchange.classList.add('hidden');
+      } else {
+        btnExchange.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-md';
+        btnTransfer.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white';
+        formExchange.classList.remove('hidden');
+        formTransfer.classList.add('hidden');
+      }
+    }
+
+    function renderPaymentsView() {
+      // Transfer Select
+      const transferSelect = document.getElementById('transfer-from-account');
+      transferSelect.innerHTML = accounts.map(acc => `
+        <option value="${acc.id}">${acc.currency} - Dostępne: ${formatCurrency(acc.balance, acc.currency)}</option>
+      `).join('');
+
+      // Beneficiaries list
+      const benContainer = document.getElementById('beneficiaries-list');
+      benContainer.innerHTML = BENEFICIARIES.map(ben => `
+        <button type="button" onclick="selectBeneficiary('${ben.name}', '${ben.account}')" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700/60 rounded-xl text-xs text-slate-200 whitespace-nowrap transition">
+          ${ben.name}
+        </button>
+      `).join('');
+
+      // Exchange Selects
+      const exFromSelect = document.getElementById('exchange-from-account');
+      const exToSelect = document.getElementById('exchange-to-account');
+      
+      const optionsHtml = accounts.map(acc => `
+        <option value="${acc.id}">${acc.currency} (${formatCurrency(acc.balance, acc.currency)})</option>
+      `).join('');
+
+      exFromSelect.innerHTML = optionsHtml;
+      exToSelect.innerHTML = optionsHtml;
+      if (accounts.length > 1) exToSelect.selectedIndex = 1;
+    }
+
+    function selectBeneficiary(name, account) {
+      document.getElementById('transfer-recipient').value = name;
+      document.getElementById('transfer-iban').value = account;
+    }
+
+    function handleTransferSubmit(e) {
+      e.preventDefault();
+      const accId = document.getElementById('transfer-from-account').value;
+      const recipient = document.getElementById('transfer-recipient').value;
+      const amount = parseFloat(document.getElementById('transfer-amount').value);
+
+      const acc = accounts.find(a => a.id === accId);
+      if (!acc || amount <= 0 || amount > acc.balance) return;
+
+      acc.balance -= amount;
+      transactions.unshift({
+        id: `tx_tr_${Date.now()}`,
+        date: new Date().toISOString(),
+        amount: -amount,
+        currency: acc.currency,
+        recipient: recipient,
+        category: 'Transfer'
+      });
+
+      saveData();
+      renderAllViews();
+      showPaymentToast();
+
+      document.getElementById('transfer-recipient').value = '';
+      document.getElementById('transfer-iban').value = '';
+      document.getElementById('transfer-amount').value = '';
+      document.getElementById('transfer-title').value = '';
+    }
+
+    function handleExchangeSubmit(e) {
+      e.preventDefault();
+      const fromId = document.getElementById('exchange-from-account').value;
+      const toId = document.getElementById('exchange-to-account').value;
+      const amount = parseFloat(document.getElementById('exchange-amount').value);
+
+      if (fromId === toId) return;
+
+      const sourceAcc = accounts.find(a => a.id === fromId);
+      const targetAcc = accounts.find(a => a.id === toId);
+
+      if (!sourceAcc || !targetAcc || amount <= 0 || amount > sourceAcc.balance) return;
+
+      const rateKey = `${sourceAcc.currency}_${targetAcc.currency}`;
+      const rate = EXCHANGE_RATES[rateKey] || 1;
+      const convertedAmt = amount * rate;
+
+      sourceAcc.balance -= amount;
+      targetAcc.balance += convertedAmt;
+
+      transactions.unshift({
+        id: `tx_ex_${Date.now()}`,
+        date: new Date().toISOString(),
+        amount: -amount,
+        currency: sourceAcc.currency,
+        recipient: `Wymiana na ${targetAcc.currency}`,
+        category: 'Exchange'
+      });
+
+      saveData();
+      renderAllViews();
+      showPaymentToast();
+
+      document.getElementById('exchange-amount').value = '';
+    }
+
+    function showPaymentToast() {
+      const toast = document.getElementById('payment-toast');
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 2200);
+    }
+
+    
+    // --- CARDS VIEW & MANAGER ---
+    function renderCardsView() {
+      const container = document.getElementById('cards-container');
+      container.innerHTML = cards.map(card => {
+        const isRevealed = revealedCardIds.has(card.id);
+        const isFrozen = card.status === 'frozen';
+
+        return `
+          <div class="space-y-3">
+            <div class="relative h-52 rounded-3xl p-6 bg-gradient-to-tr ${card.style} shadow-xl text-white flex flex-col justify-between overflow-hidden transition-all duration-300 ${isFrozen ? 'opacity-50 grayscale' : ''}">
+              <div class="flex justify-between items-start z-10">
+                <div>
+                  <span class="text-[10px] uppercase tracking-widest font-bold text-white/70">${card.type}</span>
+                  <h3 class="font-bold text-lg">${card.name}</h3>
+                </div>
+                <span class="font-mono text-xs font-black italic tracking-widest uppercase text-white/90">${card.network}</span>
+              </div>
+
+              <div class="z-10">
+                <p class="text-xs text-white/70 mb-1">Numer karty</p>
+                <div class="flex items-center justify-between font-mono text-lg tracking-widest">
+                  <span>${isRevealed ? `4532 8812 9011 ${card.last4}` : `•••• •••• •••• ${card.last4}`}</span>
+                  <button onclick="toggleCardReveal('${card.id}')" class="p-1 hover:bg-white/10 rounded transition text-white/80">
+                    <i data-lucide="${isRevealed ? 'eye-off' : 'eye'}" class="w-5 h-5"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-end z-10 text-xs">
+                <div>
+                  <p class="text-[10px] text-white/70">Ważność</p>
+                  <p class="font-mono font-semibold">${card.expiry}</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-white/70">CVV</p>
+                  <p class="font-mono font-semibold">${isRevealed ? card.cvv : '•••'}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-slate-800/50 rounded-2xl border border-slate-800 p-4 flex items-center justify-between">
+              <span class="text-xs text-slate-300 font-medium">Status karty</span>
+              <button onclick="toggleCardFreeze('${card.id}')" class="px-3 py-1 rounded-lg text-xs font-semibold transition ${isFrozen ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}">
+                ${isFrozen ? 'Odblokuj kartę' : 'Zablokuj kartę'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function toggleCardReveal(cardId) {
+      if (revealedCardIds.has(cardId)) {
+        revealedCardIds.delete(cardId);
+      } else {
+        revealedCardIds.add(cardId);
+      }
+      renderCardsView();
+    }
+
+    function toggleCardFreeze(cardId) {
+      cards = cards.map(c => c.id === cardId ? { ...c, status: c.status === 'active' ? 'frozen' : 'active' } : c);
+      saveData();
+      renderCardsView();
+    }
+
+    function openAddCardModal() {
+      const gallery = document.getElementById('card-style-gallery');
+      gallery.innerHTML = CARD_STYLES.map(s => `
+        <button type="button" onclick="selectCardStyle('${s.gradient}')" class="h-10 rounded-xl bg-gradient-to-tr ${s.gradient} border-2 transition ${selectedAddCardStyle === s.gradient ? 'border-white scale-105' : 'border-transparent'}"></button>
+      `).join('');
+
+      document.getElementById('modal-add-card').classList.remove('hidden');
+    }
+
+    function closeAddCardModal() {
+      document.getElementById('modal-add-card').classList.add('hidden');
+      document.getElementById('card-name-input').value = '';
+    }
+
+    function selectCardStyle(gradient) {
+      selectedAddCardStyle = gradient;
+      openAddCardModal();
+    }
+
+    function setCardTypeSelection(type) {
+      selectedAddCardType = type;
+      const btnVirt = document.getElementById('card-type-virtual');
+      const btnPhys = document.getElementById('card-type-physical');
+      if (type === 'virtual') {
+        btnVirt.className = 'flex-1 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white';
+        btnPhys.className = 'flex-1 py-1.5 rounded-lg text-xs font-semibold text-slate-400';
+      } else {
+        btnPhys.className = 'flex-1 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white';
+        btnVirt.className = 'flex-1 py-1.5 rounded-lg text-xs font-semibold text-slate-400';
+      }
+    }
+
+    function handleAddCardSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('card-name-input').value;
+      if (!name) return;
+
+      cards.push({
+        id: `crd_${Date.now()}`,
+        type: selectedAddCardType,
+        name: name,
+        last4: Math.floor(1000 + Math.random() * 9000).toString(),
+        expiry: '08/28',
+        cvv: Math.floor(100 + Math.random() * 900).toString(),
+        status: 'active',
+        network: selectedAddCardType === 'virtual' ? 'mastercard' : 'visa',
+        style: selectedAddCardStyle
+      });
+
+      saveData();
+      renderCardsView();
+      closeAddCardModal();
+    }
+
+    
+    // --- ANALYTICS VIEW ---
+    function renderAnalyticsView() {
+      const totalSpent = BUDGET.categories.reduce((acc, c) => acc + c.spent, 0);
+      document.getElementById('budget-limit-text').textContent = formatCurrency(BUDGET.monthlyLimit);
+      document.getElementById('budget-spent-text').textContent = formatCurrency(totalSpent);
+
+      const barContainer = document.getElementById('overall-budget-bar');
+      barContainer.innerHTML = BUDGET.categories.map(c => {
+        const pct = (c.spent / BUDGET.monthlyLimit) * 100;
+        return `<div class="${c.color} h-full" style="width: ${pct}%"></div>`;
+      }).join('');
+
+      const catContainer = document.getElementById('budget-categories-list');
+      catContainer.innerHTML = BUDGET.categories.map(cat => `
+        <div class="bg-slate-800/40 border border-slate-800/80 rounded-2xl p-4 space-y-2">
+          <div class="flex justify-between items-center text-sm">
+            <span class="font-semibold text-white flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full ${cat.color}"></span>
+              ${cat.name}
+            </span>
+            <span class="text-slate-300 font-medium">${formatCurrency(cat.spent)} / ${formatCurrency(cat.limit)}</span>
+          </div>
+          <div class="w-full bg-slate-700/30 h-1.5 rounded-full overflow-hidden">
+            <div class="h-full ${cat.color}" style="width: ${Math.min((cat.spent / cat.limit) * 100, 100)}%"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // --- PROFILE VIEW ---
+    function renderProfileView() {
+      const mainAcc = accounts.find(a => a.type === 'main') || accounts[0];
+      document.getElementById('profile-iban').textContent = mainAcc.iban;
+    }
+
+    function copyIbanToClipboard() {
+      const mainAcc = accounts.find(a => a.type === 'main') || accounts[0];
+      navigator.clipboard?.writeText(mainAcc.iban);
+      
+      const copyIcon = document.getElementById('copy-icon');
+      copyIcon.setAttribute('data-lucide', 'check');
+      copyIcon.classList.add('text-emerald-400');
+      lucide.createIcons();
+
+      setTimeout(() => {
+        copyIcon.setAttribute('data-lucide', 'copy');
+        copyIcon.classList.remove('text-emerald-400');
+        lucide.createIcons();
+      }, 1800);
+    }
+
+    
+    // --- NOTIFICATIONS & PWA MODALS ---
+    function renderNotifications() {
+      const list = document.getElementById('notif-list');
+      const badge = document.getElementById('notif-badge');
+
+      if (notifications.length === 0) {
+        list.innerHTML = `<p class="text-center text-slate-500 text-sm mt-10">Brak nowych powiadomień</p>`;
+        badge.classList.add('hidden');
+      } else {
+        badge.classList.remove('hidden');
+        list.innerHTML = notifications.map(n => `
+          <div class="p-4 bg-slate-800 rounded-2xl flex items-start gap-3 border border-slate-700/80">
+            <i data-lucide="alert-circle" class="w-5 h-5 text-indigo-400 shrink-0 mt-0.5"></i>
+            <p class="text-xs text-slate-200 leading-relaxed">${n.text}</p>
+          </div>
+        `).join('');
+      }
+      lucide.createIcons();
+    }
+
+    function openNotificationsModal() { document.getElementById('modal-notif').classList.remove('hidden'); }
+    function closeNotificationsModal() { document.getElementById('modal-notif').classList.add('hidden'); }
+    function clearNotifications() { notifications = []; renderNotifications(); }
+
+    function openInstallModal() { document.getElementById('modal-install').classList.remove('hidden'); }
+    function closeInstallModal() { document.getElementById('modal-install').classList.add('hidden'); }
+    function closePwaBanner() { document.getElementById('pwa-banner').classList.add('hidden'); }
+  </script>
+</body>
+</html>
